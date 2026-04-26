@@ -1,5 +1,6 @@
 from IPython.display import HTML
-HTML("""
+
+HTML('''
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -70,13 +71,14 @@ HTML("""
             font-size: 0.9em;
             color: #7f8c8d;
             text-align: center;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
 
     <h1>Pengingat Jadwal</h1>
-    
+
     <div class="card">
         <p class="info">Notifikasi jadwal besok + kata motivasi akan muncul otomatis hari ini antara jam 20:00 - 00:00.</p>
         <button class="btn-permission" onclick="requestNotificationPermission()">Izinkan Notifikasi Perangkat</button>
@@ -90,13 +92,13 @@ HTML("""
         <div class="day-group"><label>Jumat</label><textarea id="Jumat"></textarea></div>
         <div class="day-group"><label>Sabtu</label><textarea id="Sabtu"></textarea></div>
         <div class="day-group"><label>Minggu</label><textarea id="Minggu"></textarea></div>
-        
+
         <button onclick="saveSchedule()">Simpan Jadwal</button>
     </div>
 
     <script>
         const daysArray = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-        
+
         // Daftar kata-kata penyemangat
         const motivasi = [
             "Semangat buat besok ya! Jangan lupa disiapkan bukunya.",
@@ -110,10 +112,14 @@ HTML("""
 
         function requestNotificationPermission() {
             if (!("Notification" in window)) {
-                alert("Browser tidak mendukung notifikasi.");
+                alert("Browser kamu tidak mendukung fitur notifikasi.");
             } else {
                 Notification.requestPermission().then(permission => {
-                    if (permission === "granted") alert("Notifikasi Aktif!");
+                    if (permission === "granted") {
+                        alert("Sip! Notifikasi sudah aktif.");
+                    } else {
+                        alert("Notifikasi belum diizinkan.");
+                    }
                 });
             }
         }
@@ -139,42 +145,47 @@ HTML("""
             const currentHour = now.getHours();
             const currentDayIndex = now.getDay();
 
-            // Cek antara jam 20.00 - 23.59
+            // Cek apakah waktu saat ini antara jam 20.00 - 23.59
             if (currentHour >= 20 && currentHour <= 23) {
                 const tomorrowIndex = (currentDayIndex + 1) % 7;
                 const tomorrowName = daysArray[tomorrowIndex];
-                
+
                 const schedules = JSON.parse(localStorage.getItem('schoolSchedules')) || {};
                 const tomorrowSchedule = schedules[tomorrowName];
 
                 const lastNotifiedDate = localStorage.getItem('lastNotifiedDate');
                 const todayString = now.toDateString();
 
+                // Jika besok ada jadwal dan hari ini belum dikasih notif
                 if (tomorrowSchedule && tomorrowSchedule.trim() !== "" && lastNotifiedDate !== todayString) {
-                    
+
                     // Pilih kata motivasi acak
                     const kataAcak = motivasi[Math.floor(Math.random() * motivasi.length)];
-                    
-                    const title = Persiapan Besok (${tomorrowName});
-                    const bodyText = ${kataAcak}\n\nJadwal: ${tomorrowSchedule};
+
+                    const title = `Persiapan Besok (${tomorrowName})`;
+                    const bodyText = `${kataAcak}\n\nJadwal: ${tomorrowSchedule}`;
 
                     if (Notification.permission === "granted") {
                         new Notification(title, { body: bodyText });
                     } else {
-                        alert(${title}\n\n${bodyText});
+                        // Fallback kalau notifikasi browser mati
+                        alert(`${title}\n\n${bodyText}`);
                     }
 
+                    // Tandai supaya tidak spam notif berkali-kali di malam yang sama
                     localStorage.setItem('lastNotifiedDate', todayString);
                 }
             }
         }
 
+        // Jalankan saat web pertama kali dimuat
         loadSchedule();
-        // Cek setiap 1 menit
+
+        // Cek jadwal setiap 1 menit
         setInterval(checkAndShowNotification, 60000);
 
     </script>
 </body>
 </html>
-""")
-print("")
+'''
+)
